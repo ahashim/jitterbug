@@ -1,0 +1,21 @@
+FROM python
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir \
+    fastapi \
+    uvicorn[standard] \
+    "redis[hiredis]" \
+    prometheus_client
+
+RUN mkdir -p /tmp/prometheus_multiproc
+
+COPY main.py .
+
+EXPOSE 8000
+
+ENV PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus_multiproc
+
+# 4 workers to handle high throughput. The metrics directory is cleared on
+# startup so stale worker files are not carried across container restarts.
+CMD ["sh", "-c", "rm -f /tmp/prometheus_multiproc/* && exec uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4 --no-access-log"]

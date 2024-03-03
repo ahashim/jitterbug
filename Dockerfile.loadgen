@@ -1,0 +1,17 @@
+FROM python
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir locust
+
+COPY locustfile.py .
+
+# 1500 users across 4 worker processes → ~10.5k req/s target.
+# --processes spawns workers automatically; each gets a share of users.
+CMD ["locust", \
+     "--headless", \
+     "--host", "http://web:8000", \
+     "--users", "1500", \
+     "--spawn-rate", "150", \
+     "--run-time", "10m", \
+     "--processes", "4"]
